@@ -29,7 +29,7 @@ function Player:update (dt)
     dt = dt or 10
 end
 
-function Player:movement (dt)
+function Player:movement ()
     local cap = self.__walkSpeedCap
     if Input:keyDown (Input ["KEYS"].LEFT) then
         if Input:keyDown (Input ["KEYS"].ACTION) then
@@ -50,7 +50,7 @@ function Player:movement (dt)
     end
     
     self:horiLimits (cap)
-    self:updateX (dt)
+    --self:updateX (dt)
     self:friction ()
 end
 
@@ -97,6 +97,11 @@ end
 function Player:updateX (dt)
     dt = dt or 10
     self.x = self.x + self.xSpeed * dt
+end
+
+-- Get xSpeed
+function Player:getXSpeed ()
+    return self.xSpeed
 end
 
 -- Draws the player.

@@ -13,6 +13,9 @@ function love.conf (t)
     t.window.minwidth = 160
     t.window.minheight = 1
 
+    t.window.fullscreentype = "desktop"
+    t.window.fullscreen = true
+
     -- Disable joystick, mouse, physics
     t.modules.joystick = false
     t.modules.physics = false

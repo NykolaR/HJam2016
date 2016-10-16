@@ -13,9 +13,11 @@ Grass.__minHeight = -80 -- Min. Height
 
 --   Grass Position Constraints   --
 -- Can/Will probably be tightened --
-Grass.__minX = love.graphics.getWidth () / 4
-Grass.__maxX = love.graphics.getWidth () * 3 / 4
+--Grass.__minX = love.graphics.getWidth () / 4
+--Grass.__maxX = love.graphics.getWidth () * 3 / 4
 Grass.__middleX = love.graphics.getWidth () / 2
+Grass.__minX = Grass.__middleX - 300
+Grass.__maxX = Grass.__middleX + 300
 
 --[[
 -- Creates a grass table with x, height, and offset properties
@@ -30,20 +32,20 @@ end
 
 function Grass:wrap ()
     if self.x > Grass.__maxX then
-        self.x = self.x - Grass.__middleX
+        self.x = self.x - (Grass.__maxX - Grass.__minX)
     end
     if self.x < Grass.__minX then
-        self.x = self.x + Grass.__middleX
+        self.x = self.x + (Grass.__maxX - Grass.__minX)
     end
 end
 
 function Grass:wrapReset ()
     if self.x > Grass.__maxX then
-        self.x = self.x - Grass.__middleX
+        self.x = self.x - (Grass.__maxX - Grass.__minX)
         self:reset ()
     end
     if self.x < Grass.__minX then
-        self.x = self.x + Grass.__middleX
+        self.x = self.x + (Grass.__maxX - Grass.__minX)
         self:reset ()
     end
 end

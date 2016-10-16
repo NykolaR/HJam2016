@@ -4,95 +4,130 @@
 -- Will do something, at least
 -- ]]
 
-local ground = {}
+local skybars = {}
 local PlayerModule = require ("game.player")
 local Input = require ("game.input.input")
+local Colors = require ("game.display.colors")
+local ClumpModule = require ("game.grassclump")
 local GrassModule = require ("game.grass")
-local debug = false
+local GrassControlModule = require ("game.grasscontrol")
+local debug = true
 local Player = PlayerModule.new (GrassModule.__middleX, love.graphics.getHeight () * 3 / 4 - 64) -- Set to ground height
+local playerPosition = 0
 
 local shadow = {}
+--local moon = {}
 
-local moon = {}
+local grassFrontControl = GrassControlModule.new ()
+local grassBackControl = GrassControlModule.new ()
 
-local grassFront = {}
-local grassBack = {}
+grassFrontControl:fillRange (100)
+grassBackControl:fillRange (100)
+grassFrontControl:fillRange (300)
+grassBackControl:fillRange (300)
+grassFrontControl:fillRange (500)
+grassBackControl:fillRange (500)
+grassFrontControl:fillRange (-300)
+grassBackControl:fillRange (-300)
 
-for x = 1, GrassModule.__middleX, 3 do
-    table.insert (grassFront, GrassModule.new (GrassModule.__minX + x, nil, nil))
-    table.insert (grassBack, GrassModule.new (GrassModule.__minX + x + 1, nil, nil))
-end
+local grassFront = ClumpModule.new (0)
+local grassBack = ClumpModule.new (1)
 
-for k,g in pairs (grassFront) do
-    g:reset ()
-end
-
-for k,g in pairs (grassBack) do
-    g:reset ()
-end
+grassFront:fill ()
+grassBack:fill ()
 
 function love.load ()
-    love.graphics.setBackgroundColor (0x0B, 0x39, 0x54)
+    setSky (Colors.DarkBlue)
 
-    -- The ground
-    ground.width = love.graphics.getWidth () -- Platform = whole game window width
-    ground.height = love.graphics.getHeight () / 2 -- As tall as half the window
+    loadConstants ()
 
-    ground.x = 0
-    ground.y = love.graphics.getHeight () * 3 / 4 -- 3/4 down screen
-
-    moon.x = love.graphics.getWidth () * 3 / 4 -- One quarter down screen
-    moon.y = love.graphics.getHeight () / 6 -- 1/6 down screen width
-
-    moon.img = love.graphics.newImage ("resources/images/moon.png")
+    --moon.x = love.graphics.getWidth () * 3 / 4 -- One quarter down screen
+    --moon.y = love.graphics.getHeight () / 6 -- 1/6 down screen width
+    --moon.img = love.graphics.newImage ("resources/images/moon.png")
     shadow.img = love.graphics.newImage ("resources/images/shadow.png")
 end
 
-function love.update (dt)
-    -- Will do some CRAZY stuff!
-    Input.handleInputs ()
+function loadConstants ()
+    love.graphics.setLineWidth (2) -- Grass lines. Width. The usual.
 
-    Player:movement ()
+    -- The ground
+    skybars.gWidth = love.graphics.getWidth () -- Platform = whole game window width
+    skybars.gHeight = love.graphics.getHeight () / 4 -- As tall as one quarter the window
 
-    for i,k in pairs (grassFront) do
-        k:moveWrapReset (Player:getXSpeed () * dt)
-    end
-
-    for i,k in pairs (grassBack) do
-        k:moveWrapReset (Player:getXSpeed () * dt)
-    end
+    skybars.edgeWidth = love.graphics.getWidth () / 2 - 300 -- Width of bars
+    skybars.edgeHeight = love.graphics.getHeight () * 3 / 4
+    skybars.midWidth = 600
+    skybars.midHeight = Player.y - 300
+    skybars.edgeTwoX = Player.x + 300
+    skybars.groundY = love.graphics.getHeight () * 3 / 4 -- 3/4 down screen
 end
 
---[[
--- So, some temp. palette colors:
--- Black / Ground: 0x070707
--- Blue / Sky: 0x0B3954
--- Red / Blood: 0xB80C09
--- White / Moon: 0xFDFFFC
--- Lighter Blue / ??: 0x1F7A8C
--- Silver: 0xBFD7EA
---]]
+-- Updates inputs, movement calls, and any game logic
+-- Also will exit game on ESC pressed!
+-- The gameplay heart
+function love.update (dt)
 
+    if love.keyboard.isDown ("escape") then
+        love.event.quit ()
+    end
+
+    Input.handleInputs () -- Update input handler
+
+    Player:movement () -- Update players hSpeed
+
+    grassFront:update (Player:getXSpeed () * dt)
+    grassBack:update (Player:getXSpeed () * dt)
+    playerPosition = playerPosition + Player:getXSpeed () * dt
+end
+
+-- Handles all rendering
+-- Don't do any logic in here! None! Nada!
+-- It'll mess you if/when you add a pause screen!
 function love.draw ()
-    love.graphics.setColor (0x07, 0x07, 0x07)
-    for i,k in pairs (grassBack) do
-        k:draw ()
-    end
 
-    -- Draw the ground as a rectangle
-    love.graphics.rectangle ('fill', ground.x, ground.y, ground.width, ground.height)
-    
-    if debug then
-        love.graphics.setColor (255, 255, 255)
-        love.graphics.print ("FPS: "..tostring (love.timer.getFPS ()), 10, 10)
-    end
-    
-    love.graphics.setColor (0xBF, 0xD7, 0xEA)
-    love.graphics.draw (moon.img, moon.x, moon.y, 0, .25, .25, 0, 0)
+    grassBack:draw (playerPosition, grassBackControl) -- Draw background grass
 
-    Player:draw ()
-    love.graphics.setColor (0x07, 0x07, 0x07)
-    for i,k in pairs(grassFront) do
-        k:draw ()
+    if grassFrontControl:playerOnEmpty (playerPosition) then
+        love.graphics.setColor (Colors.DarkBlue)
+    else
+        love.graphics.setColor (Colors.Black)
     end
+    fillSky () -- Fill out dark areas
+
+    --
+    --love.graphics.setColor (Colors.Silver)
+    --love.graphics.draw (moon.img, moon.x, moon.y, 0, .25, .25, 0, 0)
+    --
+
+    Player:draw () -- Draw player
+
+    grassFront:draw (playerPosition, grassFrontControl) -- Draw Front grass
+
+    -- Draw overlay circle --
+    love.graphics.draw (shadow.img, Player.x - 300, Player.y - 300, 0, 1, 1, 0, 0)
+    
+    if debug then FPS () end -- Draw FPS to screen
+    
+end
+
+function FPS ()
+    love.graphics.setColor (Colors.Silver)
+    love.graphics.print ("FPS: "..tostring (love.timer.getFPS ()), 15, 15)
+    love.graphics.print ("PlayerPos:"..tostring (playerPosition), 15, 35)
+end
+
+-- setSky (color)
+-- Sets the sky color to arg
+function setSky (color)
+    love.graphics.setBackgroundColor (color)
+end
+
+-- fillSky ()
+-- Fills the sky with skyboxes
+function fillSky ()
+    -- Draw the ground and skybars as rectangles --
+    love.graphics.rectangle ('fill', 0, skybars.groundY, skybars.gWidth, skybars.gHeight)
+    love.graphics.rectangle ('fill', 0, 0, skybars.edgeWidth, skybars.edgeHeight)
+    love.graphics.rectangle ('fill', skybars.edgeWidth, 0, skybars.midWidth, skybars.midHeight)
+    love.graphics.rectangle ('fill', skybars.edgeTwoX, 0, skybars.edgeWidth, skybars.edgeHeight)
 end

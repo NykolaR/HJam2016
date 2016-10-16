@@ -5,6 +5,7 @@
 -- ]]
 
 local Input = require ("game.input.input")
+local Colors = require ("game.display.colors")
 
 Player = {}
 Player.__index = Player
@@ -108,7 +109,7 @@ end
 -- No physical updates or variable changes. Simple a draw call
 function Player:draw ()
     -- Temp --
-    love.graphics.setColor (255, 255, 255)
+    love.graphics.setColor (Colors.SilverMoon)
     love.graphics.rectangle ('fill', self.x, self.y, self.__width, self.__height)
 end
 

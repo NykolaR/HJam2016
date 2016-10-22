@@ -6,8 +6,8 @@
 
 local input = {}
 input ["INPUT"] = {KEY_DOWN = 1, KEY_PRESSED = 2}
-input ["KEYS"] = {LEFT = 1, RIGHT = 2, UP = 3, DOWN = 4, ACTION = 5}
-input ["KEYBOARD_KEYS"] = {LEFT = {"left", "a"}, RIGHT = {"right", "d"}, UP = {"up", "w"}, DOWN = {"down", "s"}, ACTION = {" ", "z"}}
+input ["KEYS"] = {LEFT = 1, RIGHT = 2, UP = 3, DOWN = 4, ACTION = 5, PAUSED = 6}
+input ["KEYBOARD_KEYS"] = {LEFT = {"left", "a"}, RIGHT = {"right", "d"}, UP = {"up", "w"}, DOWN = {"down", "s"}, ACTION = {" ", "z"}, PAUSED = {"return"}}
 
 input ["keys"] = {}
 

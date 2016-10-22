@@ -19,19 +19,17 @@ local shadow = {}
 --local moon = {}
 
 local grassFrontControl = GrassControlModule.new ()
-local grassBackControl = GrassControlModule.new ()
+local paused = false
 
 grassFrontControl:fillRange (100)
-grassBackControl:fillRange (100)
 grassFrontControl:fillRange (300)
-grassBackControl:fillRange (300)
 grassFrontControl:fillRange (500)
-grassBackControl:fillRange (500)
 grassFrontControl:fillRange (-300)
-grassBackControl:fillRange (-300)
 
 local grassFront = ClumpModule.new (0)
 local grassBack = ClumpModule.new (1)
+
+local skyColor = Colors.DarkBlue
 
 grassFront:fill ()
 grassBack:fill ()
@@ -66,18 +64,36 @@ end
 -- Also will exit game on ESC pressed!
 -- The gameplay heart
 function love.update (dt)
-
+    Input.handleInputs () -- Update input handler
     if love.keyboard.isDown ("escape") then
         love.event.quit ()
     end
 
-    Input.handleInputs () -- Update input handler
+    if Input:keyDown (Input ["KEYS"].PAUSED) then
+        print ("LMAO")
+        paused = not paused
+    end
 
-    Player:movement () -- Update players hSpeed
+    if not paused then
+        Player:movement () -- Update players hSpeed
 
-    grassFront:update (Player:getXSpeed () * dt)
-    grassBack:update (Player:getXSpeed () * dt)
-    playerPosition = playerPosition + Player:getXSpeed () * dt
+        grassFront:update (Player:getXSpeed () * dt)
+        grassBack:update (Player:getXSpeed () * dt)
+        playerPosition = playerPosition + Player:getXSpeed () * dt
+
+        if grassFrontControl:playerOnEmpty (playerPosition) then
+            if skyColor [2] < 240 then
+                skyColor [2] = skyColor [2] + 2
+                setSky (skyColor)
+            end
+        else
+            if skyColor [2] > Colors.DarkGrey [2] then
+                skyColor [2] = skyColor [2] - 1
+                setSky (skyColor)
+            end
+        end
+    end
+
 end
 
 -- Handles all rendering
@@ -85,18 +101,13 @@ end
 -- It'll mess you if/when you add a pause screen!
 function love.draw ()
 
-    grassBack:draw (playerPosition, grassBackControl) -- Draw background grass
+    grassBack:draw (playerPosition, grassFrontControl) -- Draw background grass
 
-    if grassFrontControl:playerOnEmpty (playerPosition) then
-        love.graphics.setColor (Colors.DarkBlue)
-    else
-        love.graphics.setColor (Colors.Black)
-    end
     fillSky () -- Fill out dark areas
 
     --
-    --love.graphics.setColor (Colors.Silver)
-    --love.graphics.draw (moon.img, moon.x, moon.y, 0, .25, .25, 0, 0)
+    -- love.graphics.setColor (Colors.Silver)
+    -- love.graphics.draw (moon.img, moon.x, moon.y, 0, .25, .25, 0, 0)
     --
 
     Player:draw () -- Draw player
@@ -114,6 +125,7 @@ function FPS ()
     love.graphics.setColor (Colors.Silver)
     love.graphics.print ("FPS: "..tostring (love.timer.getFPS ()), 15, 15)
     love.graphics.print ("PlayerPos:"..tostring (playerPosition), 15, 35)
+    love.graphics.print ("Paused:"..tostring (paused), 15, 55)
 end
 
 -- setSky (color)

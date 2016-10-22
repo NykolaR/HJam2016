@@ -18,6 +18,7 @@ Player.__xSpeedCap = 250 -- Player xSpeed limit
 Player.__walkRate = 15
 Player.__runRate = 20
 Player.__friction = 5
+Player.__img = love.graphics.newImage ("resources/images/player.png")
 
 --[[
 -- Creates a Player table with x and y properties, metatable'd to Player
@@ -109,8 +110,8 @@ end
 -- No physical updates or variable changes. Simple a draw call
 function Player:draw ()
     -- Temp --
-    love.graphics.setColor (Colors.SilverMoon)
-    love.graphics.rectangle ('fill', self.x, self.y, self.__width, self.__height)
+    --love.graphics.draw (Player.__img, self.x, self.y, 0, 1, 1, 0, 0)
+    love.graphics.rectangle ('fill', self.x, self.y, 32, 64)
 end
 
 return Player
